@@ -3,7 +3,19 @@ using UnityEngine;
 
 public class MyMatrix4x4 : IEquatable<MyMatrix4x4>, IFormattable
 {
-    
+    public override bool Equals(object obj)
+    {
+        if (ReferenceEquals(null, obj)) return false;
+        if (ReferenceEquals(this, obj)) return true;
+        if (obj.GetType() != this.GetType()) return false;
+        return Equals((MyMatrix4x4)obj);
+    }
+
+    public override int GetHashCode()
+    {
+        throw new NotImplementedException();
+    }
+
     // memory layout:
     //
     //                row no (=vertical)
