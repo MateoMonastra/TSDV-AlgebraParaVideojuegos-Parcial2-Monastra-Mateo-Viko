@@ -200,12 +200,14 @@ public class MyQuaternion : IEquatable<MyQuaternion>, IFormattable
 
     public static float Angle(MyQuaternion a, MyQuaternion b)
     {
-        throw new NotImplementedException();
+        float dotValue = Dot(a.Normalized, b.Normalized);
+        float dotAbsValue = Mathf.Abs(dotValue);
+        return IsEqualUsingDot(dotValue) ? 0.0f : Mathf.Acos(dotAbsValue) * 2.0f * Mathf.Rad2Deg; 
     }
 
     public static bool IsEqualUsingDot(float dotValue)
     {
-        throw new NotImplementedException();
+        return dotValue > 1 - float.Epsilon && dotValue < 1 + float.Epsilon;
     }
 
     public static MyQuaternion Euler(float x, float y, float z)
@@ -237,17 +239,18 @@ public class MyQuaternion : IEquatable<MyQuaternion>, IFormattable
 
     public float SquaredMagnitude()
     {
-        throw new NotImplementedException();
+        return this.x * this.x + this.y * this.y +
+               this.z * this.z + this.w * this.w;
     }
 
     public static MyQuaternion Conjugated(MyQuaternion q)
     {
-        throw new NotImplementedException();
+        return new MyQuaternion(-q.x, -q.y, -q.z, q.w);
     }
 
     public static MyQuaternion Inverse(MyQuaternion q)
     {
-        throw new NotImplementedException();
+        return MyQuaternion.Conjugated(q) / q.SquaredMagnitude();
     }
 
     public static MyQuaternion Normalize(MyQuaternion q)
