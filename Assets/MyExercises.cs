@@ -1,8 +1,6 @@
-using UnityEngine;
 using System.Collections.Generic;
-using MathDebbuger;
 using MathDebbuger.Debuggers;
-using UnityEngine.Serialization;
+using UnityEngine;
 
 public enum QuatExercices
 {
