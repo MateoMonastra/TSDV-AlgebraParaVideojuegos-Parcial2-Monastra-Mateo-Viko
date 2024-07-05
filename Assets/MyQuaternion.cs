@@ -112,27 +112,69 @@ public class MyQuaternion : IEquatable<MyQuaternion>, IFormattable
 
     public static MyQuaternion Slerp(MyQuaternion a, MyQuaternion b, float t)
     {
-        throw new NotImplementedException();
+        return SlerpUnclamped(a, b, t < 0 ? 0 : (t > 1 ? 1 : t));
     }
 
     public static MyQuaternion SlerpUnclamped(MyQuaternion a, MyQuaternion b, float t)
     {
-        throw new NotImplementedException();
+        MyQuaternion normA = a.Normalized;
+        MyQuaternion normB = b.Normalized;
+
+        float cosOmega = Dot(normA, normB);
+
+        if (cosOmega < 0.0f)
+        {
+            cosOmega = -cosOmega;
+        }
+
+        float coeff1, coeff2;
+
+        float omega = Mathf.Acos(cosOmega);
+
+        coeff1 = Mathf.Sin((1 - t) * omega) / Mathf.Sin(omega);
+        coeff2 = (cosOmega < 0.0f ? -1 : 1) * (Mathf.Sin(t * omega) / Mathf.Sin(omega));
+
+        return new MyQuaternion(
+            coeff1 * normA.x + coeff2 * normB.x,
+            coeff1 * normA.y + coeff2 * normB.y,
+            coeff1 * normA.z + coeff2 * normB.z,
+            coeff1 * normA.w + coeff2 * normB.w
+        );
     }
 
     public static MyQuaternion Lerp(MyQuaternion a, MyQuaternion b, float t)
     {
-        throw new NotImplementedException();
+        return LerpUnclamped(a, b, t < 0 ? 0 : (t > 1 ? 1 : t));
     }
 
     public static MyQuaternion LerpUnclamped(MyQuaternion a, MyQuaternion b, float t)
     {
-        throw new NotImplementedException();
+        MyQuaternion result = Identity;
+
+        if(Dot(a, b) >= float.Epsilon)
+        {
+            result.x = a.x + (b.x - a.x) * t;
+            result.y = a.y + (b.y - a.y) * t;
+            result.z = a.z + (b.z - a.z) * t;
+            result.w = a.w + (b.w - a.w) * t;
+        } else
+        {
+            result.x = a.x - (b.x - a.x) * t;
+            result.y = a.y - (b.y - a.y) * t;
+            result.z = a.z - (b.z - a.z) * t;
+            result.w = a.w - (b.w - a.w) * t;
+        }
+
+        return result;
     }
 
     public static MyQuaternion AngleAxis(float angle, Vector3 axis)
     {
-        throw new NotImplementedException();
+        Vector3 normalizedAxis = axis.normalized;
+        
+        normalizedAxis *= Mathf.Sin(angle * Mathf.Deg2Rad * 0.5f);
+
+        return new MyQuaternion(normalizedAxis.x, normalizedAxis.y, normalizedAxis.z, Mathf.Cos(angle * Mathf.Deg2Rad * 0.5f));
     }
 
     public static MyQuaternion LookRotation(Vector3 forward, Vector3 upwards)
