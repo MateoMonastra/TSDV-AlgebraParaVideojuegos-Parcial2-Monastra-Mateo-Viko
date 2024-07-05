@@ -11,7 +11,7 @@ public class MyQuaternion : IEquatable<MyQuaternion>, IFormattable
     public float w;
 
     private static MyQuaternion _identityQuaternion = new MyQuaternion(0.0f, 0.0f, 0.0f, 1f);
-    public const float KEpsilon = 1E-06f;
+    public const float Epsilon = 1E-06f;
 
     public float this[int index]
     {
@@ -268,40 +268,45 @@ public class MyQuaternion : IEquatable<MyQuaternion>, IFormattable
         return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
     }
 
-    public static MyQuaternion operator *(MyQuaternion lhs, MyQuaternion rhs)
+    public static MyQuaternion operator *(MyQuaternion a, MyQuaternion b)
     {
         return new MyQuaternion(
-            lhs.w * rhs.x + lhs.x * rhs.w + lhs.y * rhs.z - lhs.z * rhs.y,
-            lhs.w * rhs.y + lhs.y * rhs.w + lhs.z * rhs.x - lhs.x * rhs.z,
-            lhs.w * rhs.z + lhs.z * rhs.w + lhs.x * rhs.y - lhs.y * rhs.x,
-            lhs.w * rhs.w - lhs.x * rhs.x - lhs.y * rhs.y - lhs.z * rhs.z);
+            a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y,
+            a.w * b.y + a.y * b.w + a.z * b.x - a.x * b.z,
+            a.w * b.z + a.z * b.w + a.x * b.y - a.y * b.x,
+            a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z);
     }
 
     public static Vector3 operator *(MyQuaternion rotation, Vector3 point)
     {
-        throw new NotImplementedException();
+        MyQuaternion pureVectorQuaternion = new MyQuaternion(point.x, point.y, point.z, 0);
+        MyQuaternion appliedPureQuaternion = rotation * pureVectorQuaternion * MyQuaternion.Conjugated(rotation);
+
+        return new Vector3(appliedPureQuaternion.x, appliedPureQuaternion.y, appliedPureQuaternion.z);
     }
 
-    public static bool operator ==(MyQuaternion lhs, MyQuaternion rhs)
+    public static bool operator ==(MyQuaternion a, MyQuaternion b
+    )
     {
-        throw new NotImplementedException();
+        return MyQuaternion.Dot(a, b) > 1 - Epsilon;
     }
 
     public static MyQuaternion operator /(MyQuaternion q, float value)
     {
-        throw new NotImplementedException();
+        return new MyQuaternion(
+            q.x / value,
+            q.y / value,
+            q.z / value,
+            q.w / value
+        );
     }
 
-    public static bool operator !=(MyQuaternion lhs, MyQuaternion rhs)
+    public static bool operator !=(MyQuaternion a, MyQuaternion b
+    )
     {
-        return !(lhs == rhs);
+        return !(a == b);
     }
-
-    public override bool Equals(object other)
-    {
-        throw new NotImplementedException();
-    }
-
+    
     public string ToString(string format, IFormatProvider formatProvider)
     {
         return $"( X = ${this.x}, Y = ${this.y}, Z = ${this.z}, W = ${this.w})";
@@ -309,7 +314,9 @@ public class MyQuaternion : IEquatable<MyQuaternion>, IFormattable
 
     public bool Equals(MyQuaternion other)
     {
-        throw new NotImplementedException();
+        if (ReferenceEquals(null, other)) return false;
+        if (ReferenceEquals(this, other)) return true;
+        return x.Equals(other.x) && y.Equals(other.y) && z.Equals(other.z) && w.Equals(other.w);
     }
 
     public override int GetHashCode()
