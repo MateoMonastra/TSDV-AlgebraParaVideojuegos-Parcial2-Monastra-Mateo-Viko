@@ -179,17 +179,76 @@ public class MyQuaternion : IEquatable<MyQuaternion>, IFormattable
 
     public static MyQuaternion LookRotation(Vector3 forward, Vector3 upwards)
     {
-        throw new NotImplementedException();
+            if (forward.magnitude <= Epsilon) return MyQuaternion.Identity;
+            
+            Vector3 forwardToUse = forward.normalized;
+            Vector3 rightToUse = Vector3.Cross(upwards, forward).normalized;
+            Vector3 upToUse = upwards.normalized;
+            
+            
+            float m00 = rightToUse.x;
+            float m01 = rightToUse.y;
+            float m02 = rightToUse.z;
+
+            float m10 = upToUse.x;
+            float m11 = upToUse.y;
+            float m12 = upToUse.z;
+
+            float m20 = forwardToUse.x;
+            float m21 = forwardToUse.y;
+            float m22 = forwardToUse.z;
+            
+            MyQuaternion result;
+            float factor;
+            
+            if (m22 < 0)
+            {
+                if (m00 > m11)
+                {
+                    factor = 1 + m00 - m11 - m22;
+                    
+                    result = new MyQuaternion(factor, m10 + m01, m20 + m02, m12 - m21);
+                }
+                else
+                {
+                    factor = 1 - m00 + m11 - m22;
+
+                    result = new MyQuaternion(m01 + m10, factor, m12 + m21, m20 - m02);
+                }
+            }
+            else
+            {
+                if (m00 < -m11)
+                {
+                    factor = 1 - m00 - m11 + m22;
+
+                    result = new MyQuaternion(m20 + m02, m12 + m21, factor, m01 - m10);
+                }
+                else
+                {
+                    factor = 1 + m00 + m11 + m22;
+
+                    result = new MyQuaternion(m12 - m21, m20 - m02, m01 - m10, factor);
+                }
+            }
+
+            result *= 0.5f / Mathf.Sqrt(factor);
+
+            return result;
     }
 
     public static MyQuaternion LookRotation(Vector3 forward)
     {
-        throw new NotImplementedException();
+        return MyQuaternion.LookRotation(forward, Vector3.up);
     }
 
     public void SetLookRotation(Vector3 view, Vector3 up)
     {
-        this = LookRotation(view, up);
+        MyQuaternion lookRotationQuaternion = LookRotation(view, up);
+
+        this.x = lookRotationQuaternion.x;
+        this.y = lookRotationQuaternion.y;
+        this.z = lookRotationQuaternion.z;
     }
 
     public void SetLookRotation(Vector3 view)
@@ -202,6 +261,7 @@ public class MyQuaternion : IEquatable<MyQuaternion>, IFormattable
     {
         float dotValue = Dot(a.Normalized, b.Normalized);
         float dotAbsValue = Mathf.Abs(dotValue);
+        
         return IsEqualUsingDot(dotValue) ? 0.0f : Mathf.Acos(dotAbsValue) * 2.0f * Mathf.Rad2Deg; 
     }
 
@@ -227,7 +287,12 @@ public class MyQuaternion : IEquatable<MyQuaternion>, IFormattable
 
     public void SetFromToRotation(Vector3 fromDirection, Vector3 toDirection)
     {
-        this = FromToRotation(fromDirection, toDirection);
+        MyQuaternion newQuaternion = FromToRotation(fromDirection, toDirection).Normalized;
+
+        this.x = newQuaternion.x;
+        this.y = newQuaternion.y;
+        this.z = newQuaternion.z;
+        this.w = newQuaternion.w;
     }
 
     public static MyQuaternion RotateTowards(MyQuaternion from, MyQuaternion to, float maxDegreesDelta)
@@ -285,6 +350,15 @@ public class MyQuaternion : IEquatable<MyQuaternion>, IFormattable
         return new Vector3(appliedPureQuaternion.x, appliedPureQuaternion.y, appliedPureQuaternion.z);
     }
 
+    public static MyQuaternion operator *(MyQuaternion q, float value)
+    {
+        return new MyQuaternion(
+            q.x * value,
+            q.y * value,
+            q.z * value,
+            q.w * value
+        );
+    }
     public static bool operator ==(MyQuaternion a, MyQuaternion b
     )
     {
@@ -317,6 +391,13 @@ public class MyQuaternion : IEquatable<MyQuaternion>, IFormattable
         if (ReferenceEquals(null, other)) return false;
         if (ReferenceEquals(this, other)) return true;
         return x.Equals(other.x) && y.Equals(other.y) && z.Equals(other.z) && w.Equals(other.w);
+    }
+    public override bool Equals(object obj)
+    {
+        if (ReferenceEquals(null, obj)) return false;
+        if (ReferenceEquals(this, obj)) return true;
+        if (obj.GetType() != this.GetType()) return false;
+        return Equals((MyQuaternion)obj);
     }
 
     public override int GetHashCode()
