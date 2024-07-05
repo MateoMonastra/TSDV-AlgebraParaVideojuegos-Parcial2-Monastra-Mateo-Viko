@@ -3,14 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MyQuaternion : MonoBehaviour
+public class MyQuaternion : IEquatable<MyQuaternion>, IFormattable
 {
     public float x;
     public float y;
     public float z;
     public float w;
 
-    private static readonly MyQuaternion IdentityQuaternion = new MyQuaternion(0.0f, 0.0f, 0.0f, 1f);
+    private static MyQuaternion _identityQuaternion = new MyQuaternion(0.0f, 0.0f, 0.0f, 1f);
     public const float KEpsilon = 1E-06f;
 
     public float this[int index]
@@ -71,27 +71,43 @@ public class MyQuaternion : MonoBehaviour
     
     private Vector3 NormalizeAngles(Vector3 someEulerAngles)
     {
-        throw new NotImplementedException();
+        return new Vector3(NormalizeAngle(someEulerAngles.x), NormalizeAngle(someEulerAngles.y),
+            NormalizeAngle(someEulerAngles.z));
     }
 
     private float NormalizeAngle(float angle)
     {
-        throw new NotImplementedException();
+        float newAngle = angle;
+        while (newAngle > 360.0f)
+        {
+            newAngle -= 360.0f;
+        }
+
+        while (newAngle < 0.0f)
+        {
+            newAngle += 360.0f;
+        }
+
+        return newAngle;
     }
 
     public static MyQuaternion Identity
     {
-        get => MyQuaternion.IdentityQuaternion;
+        get => MyQuaternion._identityQuaternion;
     }
 
-    public MyQuaternion normalized
+    public MyQuaternion Normalized
     {
         get => MyQuaternion.Normalize(this);
     }
 
     public static MyQuaternion FromToRotation(Vector3 fromDirection, Vector3 toDirection)
     {
-        throw new NotImplementedException();
+        Vector3 axis = Vector3.Cross(fromDirection, toDirection);
+        
+        float angle = Vector3.Angle(fromDirection, toDirection);
+        
+        return AngleAxis(angle, axis);
     }
 
     public static MyQuaternion Slerp(MyQuaternion a, MyQuaternion b, float t)
@@ -131,12 +147,13 @@ public class MyQuaternion : MonoBehaviour
 
     public void SetLookRotation(Vector3 view, Vector3 up)
     {
-        throw new NotImplementedException();
+        this = LookRotation(view, up);
     }
 
     public void SetLookRotation(Vector3 view)
     {
-        throw new NotImplementedException();
+        Vector3 up = Vector3.up;
+        SetLookRotation(view, up);
     }
 
     public static float Angle(MyQuaternion a, MyQuaternion b)
@@ -166,12 +183,14 @@ public class MyQuaternion : MonoBehaviour
 
     public void SetFromToRotation(Vector3 fromDirection, Vector3 toDirection)
     {
-        throw new NotImplementedException();
+        this = FromToRotation(fromDirection, toDirection);
     }
 
     public static MyQuaternion RotateTowards(MyQuaternion from, MyQuaternion to, float maxDegreesDelta)
     {
-        throw new NotImplementedException();
+        float angle = MyQuaternion.Angle(from, to);
+        if (angle == 0.0f) return to;
+        return SlerpUnclamped(from, to, Mathf.Min(1.0f, maxDegreesDelta / angle));
     }
 
     public float SquaredMagnitude()
@@ -191,17 +210,26 @@ public class MyQuaternion : MonoBehaviour
 
     public static MyQuaternion Normalize(MyQuaternion q)
     {
-        throw new NotImplementedException();
+        float mag = Mathf.Sqrt(Dot(q, q));
+
+        if (mag < Mathf.Epsilon)
+            return MyQuaternion.Identity;
+
+        return new MyQuaternion(q.x / mag, q.y / mag, q.z / mag, q.w / mag);
     }
 
-    public static float Dot(MyQuaternion lhs, MyQuaternion rhs)
+    public static float Dot(MyQuaternion a, MyQuaternion b)
     {
-        throw new NotImplementedException();
+        return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
     }
 
     public static MyQuaternion operator *(MyQuaternion lhs, MyQuaternion rhs)
     {
-        throw new NotImplementedException();
+        return new MyQuaternion(
+            lhs.w * rhs.x + lhs.x * rhs.w + lhs.y * rhs.z - lhs.z * rhs.y,
+            lhs.w * rhs.y + lhs.y * rhs.w + lhs.z * rhs.x - lhs.x * rhs.z,
+            lhs.w * rhs.z + lhs.z * rhs.w + lhs.x * rhs.y - lhs.y * rhs.x,
+            lhs.w * rhs.w - lhs.x * rhs.x - lhs.y * rhs.y - lhs.z * rhs.z);
     }
 
     public static Vector3 operator *(MyQuaternion rotation, Vector3 point)
@@ -221,7 +249,7 @@ public class MyQuaternion : MonoBehaviour
 
     public static bool operator !=(MyQuaternion lhs, MyQuaternion rhs)
     {
-        throw new NotImplementedException();
+        return !(lhs == rhs);
     }
 
     public override bool Equals(object other)
