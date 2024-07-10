@@ -385,7 +385,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   exercise: 3
-  angle: 0
+  angle: 5
 --- !u!4 &1173436496
 Transform:
   m_ObjectHideFlags: 0

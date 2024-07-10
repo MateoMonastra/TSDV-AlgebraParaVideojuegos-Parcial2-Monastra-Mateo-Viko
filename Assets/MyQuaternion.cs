@@ -3,10 +3,10 @@ using UnityEngine;
 
 public class MyQuaternion : IEquatable<MyQuaternion>, IFormattable
 {
-    public float X;
-    public float Y;
-    public float Z;
-    public float W;
+    public float x;
+    public float y;
+    public float z;
+    public float w;
 
     private static MyQuaternion _identityQuaternion = new MyQuaternion(0.0f, 0.0f, 0.0f, 1f);
     public const float Epsilon = 1E-06f;
@@ -18,13 +18,13 @@ public class MyQuaternion : IEquatable<MyQuaternion>, IFormattable
             switch (index)
             {
                 case 0:
-                    return this.X;
+                    return this.x;
                 case 1:
-                    return this.Y;
+                    return this.y;
                 case 2:
-                    return this.Z;
+                    return this.z;
                 case 3:
-                    return this.W;
+                    return this.w;
                 default:
                     throw new IndexOutOfRangeException("Invalid Quaternion index!");
             }
@@ -34,16 +34,16 @@ public class MyQuaternion : IEquatable<MyQuaternion>, IFormattable
             switch (index)
             {
                 case 0:
-                    this.X = value;
+                    this.x = value;
                     break;
                 case 1:
-                    this.Y = value;
+                    this.y = value;
                     break;
                 case 2:
-                    this.Z = value;
+                    this.z = value;
                     break;
                 case 3:
-                    this.W = value;
+                    this.w = value;
                     break;
                 default:
                     throw new IndexOutOfRangeException("Invalid Quaternion index!");
@@ -53,18 +53,47 @@ public class MyQuaternion : IEquatable<MyQuaternion>, IFormattable
 
     public MyQuaternion(float x, float y, float z, float w)
     {
-        this.X = x;
-        this.Y = y;
-        this.Z = z;
-        this.W = w;
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.w = w;
     }
 
+    public Vector3 EulerAngles
+    {
+        get
+        {
+            //Calculamos x & z separadas porque si se rotan entre si puede producir el gymballock
+            //Calculamos la  x en base a y
+            float sinrCosp = 2 * (this.w * this.x + this.y * this.z);
+            float cosrCosp = 1 - 2 * (this.x * this.x + this.y * this.y);
+            float x = Mathf.Atan2(sinrCosp, cosrCosp);
+
+            //Calculamos y sola ya que es independiente 
+            float sinp = Mathf.Sqrt(1 + 2 * (this.w * this.y - this.x * this.z));
+            float cosp = Mathf.Sqrt(1 - 2 * (this.w * this.y - this.x * this.z));
+            float y = 2 * Mathf.Atan2(sinp, cosp) - Mathf.Rad2Deg;
+
+            //Calculamos la  z en base a y
+            float sinyCosp = 2 * (this.w * this.z + this.x * this.y);
+            float cosyCosp = 1 - 2 * (this.y * this.y + this.z * this.z);
+            float z = Mathf.Atan2(sinyCosp, cosyCosp);
+            return new Vector3(x, y, z);
+        }
+
+        set
+        {
+            MyQuaternion q = Euler(value);
+            this.Set(q.x,q.y,q.z,q.w);
+        }
+    }
+    
     public void Set(float newX, float newY, float newZ, float newW)
     {
-        this.X = newX;
-        this.Y = newY;
-        this.Z = newZ;
-        this.W = newW;
+        this.x = newX;
+        this.y = newY;
+        this.z = newZ;
+        this.w = newW;
     }
     
     private Vector3 NormalizeAngles(Vector3 someEulerAngles)
@@ -133,10 +162,10 @@ public class MyQuaternion : IEquatable<MyQuaternion>, IFormattable
         coeff2 = (cosOmega < 0.0f ? -1 : 1) * (Mathf.Sin(t * omega) / Mathf.Sin(omega));
 
         return new MyQuaternion(
-            coeff1 * normA.X + coeff2 * normB.X,
-            coeff1 * normA.Y + coeff2 * normB.Y,
-            coeff1 * normA.Z + coeff2 * normB.Z,
-            coeff1 * normA.W + coeff2 * normB.W
+            coeff1 * normA.x + coeff2 * normB.x,
+            coeff1 * normA.y + coeff2 * normB.y,
+            coeff1 * normA.z + coeff2 * normB.z,
+            coeff1 * normA.w + coeff2 * normB.w
         );
     }
 
@@ -151,16 +180,16 @@ public class MyQuaternion : IEquatable<MyQuaternion>, IFormattable
 
         if(Dot(a, b) >= float.Epsilon)
         {
-            result.X = a.X + (b.X - a.X) * t;
-            result.Y = a.Y + (b.Y - a.Y) * t;
-            result.Z = a.Z + (b.Z - a.Z) * t;
-            result.W = a.W + (b.W - a.W) * t;
+            result.x = a.x + (b.x - a.x) * t;
+            result.y = a.y + (b.y - a.y) * t;
+            result.z = a.z + (b.z - a.z) * t;
+            result.w = a.w + (b.w - a.w) * t;
         } else
         {
-            result.X = a.X - (b.X - a.X) * t;
-            result.Y = a.Y - (b.Y - a.Y) * t;
-            result.Z = a.Z - (b.Z - a.Z) * t;
-            result.W = a.W - (b.W - a.W) * t;
+            result.x = a.x - (b.x - a.x) * t;
+            result.y = a.y - (b.y - a.y) * t;
+            result.z = a.z - (b.z - a.z) * t;
+            result.w = a.w - (b.w - a.w) * t;
         }
 
         return result;
@@ -244,9 +273,9 @@ public class MyQuaternion : IEquatable<MyQuaternion>, IFormattable
     {
         MyQuaternion lookRotationQuaternion = LookRotation(view, up);
 
-        this.X = lookRotationQuaternion.X;
-        this.Y = lookRotationQuaternion.Y;
-        this.Z = lookRotationQuaternion.Z;
+        this.x = lookRotationQuaternion.x;
+        this.y = lookRotationQuaternion.y;
+        this.z = lookRotationQuaternion.z;
     }
 
     public void SetLookRotation(Vector3 view)
@@ -270,27 +299,44 @@ public class MyQuaternion : IEquatable<MyQuaternion>, IFormattable
 
     public static MyQuaternion Euler(float x, float y, float z)
     {
-        throw new NotImplementedException();
+        float sin;// calculamos la parte imaginaria
+        float cos;// calculamos la parte real
+        MyQuaternion qX;
+        MyQuaternion qY;
+        MyQuaternion qZ;
+        MyQuaternion toReturn = Identity;
+
+        sin = Mathf.Sin(Mathf.Deg2Rad * x * 0.5f);
+        cos = Mathf.Cos(Mathf.Deg2Rad * x * 0.5f);
+        qX = new MyQuaternion(sin, 0, 0, cos);
+
+        sin = Mathf.Sin(Mathf.Deg2Rad * y * 0.5f);
+        cos = Mathf.Cos(Mathf.Deg2Rad * y * 0.5f);
+        qY = new MyQuaternion(0, sin, 0, cos);
+
+        sin = Mathf.Sin(Mathf.Deg2Rad * z * 0.5f);
+        cos = Mathf.Cos(Mathf.Deg2Rad * z * 0.5f);
+        qZ = new MyQuaternion(0, 0, sin, cos);
+
+        toReturn = (qX * qY) * qZ;
+
+        return toReturn;
+
     }
 
     public static MyQuaternion Euler(Vector3 euler)
     {
-        throw new NotImplementedException();
-    }
-
-    public void ToAngleAxis(out float angle, out Vector3 axis)
-    {
-        throw new NotImplementedException();
+        return Euler(euler.x, euler.y, euler.z);
     }
 
     public void SetFromToRotation(Vector3 fromDirection, Vector3 toDirection)
     {
         MyQuaternion newQuaternion = FromToRotation(fromDirection, toDirection).Normalized;
 
-        this.X = newQuaternion.X;
-        this.Y = newQuaternion.Y;
-        this.Z = newQuaternion.Z;
-        this.W = newQuaternion.W;
+        this.x = newQuaternion.x;
+        this.y = newQuaternion.y;
+        this.z = newQuaternion.z;
+        this.w = newQuaternion.w;
     }
 
     public static MyQuaternion RotateTowards(MyQuaternion from, MyQuaternion to, float maxDegreesDelta)
@@ -302,13 +348,13 @@ public class MyQuaternion : IEquatable<MyQuaternion>, IFormattable
 
     public float SquaredMagnitude()
     {
-        return this.X * this.X + this.Y * this.Y +
-               this.Z * this.Z + this.W * this.W;
+        return this.x * this.x + this.y * this.y +
+               this.z * this.z + this.w * this.w;
     }
 
     public static MyQuaternion Conjugated(MyQuaternion q)
     {
-        return new MyQuaternion(-q.X, -q.Y, -q.Z, q.W);
+        return new MyQuaternion(-q.x, -q.y, -q.z, q.w);
     }
 
     public static MyQuaternion Inverse(MyQuaternion q)
@@ -323,21 +369,21 @@ public class MyQuaternion : IEquatable<MyQuaternion>, IFormattable
         if (mag < Mathf.Epsilon)
             return Identity;
 
-        return new MyQuaternion(q.X / mag, q.Y / mag, q.Z / mag, q.W / mag);
+        return new MyQuaternion(q.x / mag, q.y / mag, q.z / mag, q.w / mag);
     }
 
     public static float Dot(MyQuaternion a, MyQuaternion b)
     {
-        return a.X * b.X + a.Y * b.Y + a.Z * b.Z + a.W * b.W;
+        return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
     }
 
     public static MyQuaternion operator *(MyQuaternion a, MyQuaternion b)
     {
         return new MyQuaternion(
-            a.W * b.X + a.X * b.W + a.Y * b.Z - a.Z * b.Y,
-            a.W * b.Y + a.Y * b.W + a.Z * b.X - a.X * b.Z,
-            a.W * b.Z + a.Z * b.W + a.X * b.Y - a.Y * b.X,
-            a.W * b.W - a.X * b.X - a.Y * b.Y - a.Z * b.Z);
+            a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y,
+            a.w * b.y + a.y * b.w + a.z * b.x - a.x * b.z,
+            a.w * b.z + a.z * b.w + a.x * b.y - a.y * b.x,
+            a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z);
     }
 
     public static Vector3 operator *(MyQuaternion rotation, Vector3 point)
@@ -345,20 +391,19 @@ public class MyQuaternion : IEquatable<MyQuaternion>, IFormattable
         MyQuaternion pureVectorQuaternion = new MyQuaternion(point.x, point.y, point.z, 0);
         MyQuaternion appliedPureQuaternion = rotation * pureVectorQuaternion * Conjugated(rotation);
 
-        return new Vector3(appliedPureQuaternion.X, appliedPureQuaternion.Y, appliedPureQuaternion.Z);
+        return new Vector3(appliedPureQuaternion.x, appliedPureQuaternion.y, appliedPureQuaternion.z);
     }
 
     public static MyQuaternion operator *(MyQuaternion q, float value)
     {
         return new MyQuaternion(
-            q.X * value,
-            q.Y * value,
-            q.Z * value,
-            q.W * value
+            q.x * value,
+            q.y * value,
+            q.z * value,
+            q.w * value
         );
     }
-    public static bool operator ==(MyQuaternion a, MyQuaternion b
-    )
+    public static bool operator ==(MyQuaternion a, MyQuaternion b)
     {
         return Dot(a, b) > 1 - Epsilon;
     }
@@ -366,29 +411,28 @@ public class MyQuaternion : IEquatable<MyQuaternion>, IFormattable
     public static MyQuaternion operator /(MyQuaternion q, float value)
     {
         return new MyQuaternion(
-            q.X / value,
-            q.Y / value,
-            q.Z / value,
-            q.W / value
+            q.x / value,
+            q.y / value,
+            q.z / value,
+            q.w / value
         );
     }
 
-    public static bool operator !=(MyQuaternion a, MyQuaternion b
-    )
+    public static bool operator !=(MyQuaternion a, MyQuaternion b)
     {
         return !(a == b);
     }
     
     public string ToString(string format, IFormatProvider formatProvider)
     {
-        return $"( X = ${this.X}, Y = ${this.Y}, Z = ${this.Z}, W = ${this.W})";
+        return $"( X = ${this.x}, Y = ${this.y}, Z = ${this.z}, W = ${this.w})";
     }
 
     public bool Equals(MyQuaternion other)
     {
         if (ReferenceEquals(null, other)) return false;
         if (ReferenceEquals(this, other)) return true;
-        return X.Equals(other.X) && Y.Equals(other.Y) && Z.Equals(other.Z) && W.Equals(other.W);
+        return x.Equals(other.x) && y.Equals(other.y) && z.Equals(other.z) && w.Equals(other.w);
     }
     public override bool Equals(object obj)
     {
@@ -397,10 +441,9 @@ public class MyQuaternion : IEquatable<MyQuaternion>, IFormattable
         if (obj.GetType() != this.GetType()) return false;
         return Equals((MyQuaternion)obj);
     }
-
     public override int GetHashCode()
     {
-        return HashCode.Combine(X, Y, Z, W);
+        return HashCode.Combine(x, y, z, w);
     }
 }
 
