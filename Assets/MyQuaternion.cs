@@ -160,12 +160,16 @@ public class MyQuaternion : IEquatable<MyQuaternion>, IFormattable
         get => Normalize(this);
     }
 
+    //me devuelve una rotacion que rota desde fromDirection a toDirection
     public static MyQuaternion FromToRotation(Vector3 fromDirection, Vector3 toDirection)
     {
+        //Con producto cruz obtengo un vector perpendicular a los que tengo (axis)
         Vector3 axis = Vector3.Cross(fromDirection, toDirection);
-        
+
+        //Calculamos el angulo entre los dos vectores
         float angle = Vector3.Angle(fromDirection, toDirection);
-        
+
+        //Va a girar en el eje pasado la cantidad de ángulos pasados
         return AngleAxis(angle, axis);
     }
 
@@ -176,13 +180,16 @@ public class MyQuaternion : IEquatable<MyQuaternion>, IFormattable
 
     public static MyQuaternion SlerpUnclamped(MyQuaternion a, MyQuaternion b, float t)
     {
+        //https://en.wikipedia.org/wiki/Slerp#:~:text=0%20and%C2%A01.-,Geometric%20slerp,-%5Bedit%5D formula
+
         MyQuaternion normA = a.Normalized;
         MyQuaternion normB = b.Normalized;
 
         float cosOmega = Dot(normA, normB);
 
-        if (cosOmega < 0.0f)
+        if (cosOmega < 0.0f) //Busca el camino mas corto //ortodromica
         {
+            //Cambia el signo de la interpolacion para ir hacia el otro lado
             cosOmega = -cosOmega;
         }
 
@@ -190,9 +197,11 @@ public class MyQuaternion : IEquatable<MyQuaternion>, IFormattable
 
         float omega = Mathf.Acos(cosOmega);
 
+        //Coeficientes de incidencia, mantiene el quaternion unitario
         coeff1 = Mathf.Sin((1 - t) * omega) / Mathf.Sin(omega);
         coeff2 = (cosOmega < 0.0f ? -1 : 1) * (Mathf.Sin(t * omega) / Mathf.Sin(omega));
 
+        //Genera un nuevo vector multiplicando los componentes de ambos quat segun su coeficiente de incidencia
         return new MyQuaternion(
             coeff1 * normA.x + coeff2 * normB.x,
             coeff1 * normA.y + coeff2 * normB.y,
@@ -210,23 +219,27 @@ public class MyQuaternion : IEquatable<MyQuaternion>, IFormattable
     {
         MyQuaternion result = Identity;
 
-        if(Dot(a, b) >= float.Epsilon)
+        float timeLeft = 1 - t; //Primero se averigua el tiempo restante (para que la rotación llegue de “a” a “b”).
+
+        if (Dot(a, b) >= 0) //Averigua el camino mas corto, dependiendo de eso se hace una suma o una resta para la fórmula de interpolación lineal 
         {
-            result.x = a.x + (b.x - a.x) * t;
-            result.y = a.y + (b.y - a.y) * t;
-            result.z = a.z + (b.z - a.z) * t;
-            result.w = a.w + (b.w - a.w) * t;
-        } else
+            result.x = (timeLeft * a.x) + (t * b.x);
+            result.y = (timeLeft * a.y) + (t * b.y);
+            result.z = (timeLeft * a.z) + (t * b.z);
+            result.w = (timeLeft * a.w) + (t * b.w);
+        }
+        else
         {
-            result.x = a.x - (b.x - a.x) * t;
-            result.y = a.y - (b.y - a.y) * t;
-            result.z = a.z - (b.z - a.z) * t;
-            result.w = a.w - (b.w - a.w) * t;
+            result.x = (timeLeft * a.x) - (t * b.x);
+            result.y = (timeLeft * a.y) - (t * b.y);
+            result.z = (timeLeft * a.z) - (t * b.z);
+            result.w = (timeLeft * a.w) - (t * b.w);
         }
 
-        return result;
+        return Normalize(result);
     }
 
+    //Me devuelve un quaternion de rotacion que me va a modificar la rotacion en un angulo determinado alrededor de un eje especifico
     public static MyQuaternion AngleAxis(float angle, Vector3 axis)
     {
         Vector3 normalizedAxis = axis.normalized;
