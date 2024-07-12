@@ -288,6 +288,8 @@ public class MyMatrix4x4 : IEquatable<MyMatrix4x4>, IFormattable
         }
     }
     
+    //https://www.allmathwords.org/es/l/laplaceexpansion.html
+    //Cada término de la suma/resta corresponde a un cofactor multiplicado por un elemento de la matriz original
     public float determinant =>
         M03 * M12 * M21 * M30 - M02 * M13 * M21 * M30 -
         M03 * M11 * M22 * M30 + M01 * M13 * M22 * M30 +
