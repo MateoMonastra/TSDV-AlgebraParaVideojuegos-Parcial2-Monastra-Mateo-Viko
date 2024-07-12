@@ -203,37 +203,51 @@ public class MyMatrix4x4 : IEquatable<MyMatrix4x4>, IFormattable
     {
         get
         {
+            Vector3 scales = LossyScale;
+            
+            float rm00 = M00 / scales.x;
+            float rm10 = M10 / scales.x;
+            float rm20 = M20 / scales.x;
+            
+            float rm01 = M01 / scales.y;
+            float rm11 = M11 / scales.y;
+            float rm21 = M21 / scales.y;
+            
+            float rm02 = M02 / scales.z;
+            float rm12 = M12 / scales.z;
+            float rm22 = M22 / scales.z;
+            
             MyQuaternion result;
             float factor;
 
-            if (M22 < 0)
+            if (rm22 < 0)
             {
-                if (M00 > M11)
+                if (rm00 > rm11)
                 {
-                    factor = 1 + M00 - M11 - M22;
+                    factor = 1 + rm00 - rm11 - rm22;
 
-                    result = new MyQuaternion(factor, M10 + M01, M20 + M02, M12 - M21);
+                    result = new MyQuaternion(factor, rm10 + rm01, rm20 + rm02, rm12 - rm21);
                 }
                 else
                 {
-                    factor = 1 - M00 + M11 - M22;
+                    factor = 1 - rm00 + rm11 - rm22;
 
-                    result = new MyQuaternion(M01 + M10, factor, M12 + M21, M20 - M02);
+                    result = new MyQuaternion(rm01 + rm10, factor, rm12 + rm21, rm20 - rm02);
                 }
             }
             else
             {
-                if (M00 < -M11)
+                if (rm00 < -rm11)
                 {
-                    factor = 1 - M00 - M11 + M22;
+                    factor = 1 - rm00 - rm11 + rm22;
 
-                    result = new MyQuaternion(M20 + M02, M12 + M21, factor, M01 - M10);
+                    result = new MyQuaternion(rm20 + rm02, rm12 + rm21, factor, rm01 - rm10);
                 }
                 else
                 {
-                    factor = 1 + M00 + M11 + M22;
+                    factor = 1 + rm00 + rm11 + rm22;
 
-                    result = new MyQuaternion(M12 - M21, M20 - M02, M01 - M10, factor);
+                    result = new MyQuaternion(rm12 - rm21, rm20 - rm02, rm01 - rm10, factor);
                 }
             }
 
