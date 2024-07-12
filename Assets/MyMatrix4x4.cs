@@ -208,14 +208,14 @@ public class MyMatrix4x4 : IEquatable<MyMatrix4x4>, IFormattable
             //Toma la diagonal (m00, m11, m22) que es la escala y en base a eso aplica en cada uno de los ejes su respectiva escala
             //Toma en cuenta la escala para poder ajustar bien los valores ya que la escala y rotacion comparten valores
 
-            q.W = Mathf.Sqrt(Mathf.Max(0, 1 + m[0, 0] + m[1, 1] + m[2, 2])) * 0.5f; //Devuelve la raiz de un número que debe ser al menos 0.
-            q.X = Mathf.Sqrt(Mathf.Max(0, 1 + m[0, 0] - m[1, 1] - m[2, 2])) * 0.5f;
-            q.Y = Mathf.Sqrt(Mathf.Max(0, 1 - m[0, 0] + m[1, 1] - m[2, 2])) * 0.5f;
-            q.Z = Mathf.Sqrt(Mathf.Max(0, 1 - m[0, 0] - m[1, 1] + m[2, 2])) * 0.5f;
+            q.w = Mathf.Sqrt(Mathf.Max(0, 1 + m[0, 0] + m[1, 1] + m[2, 2])) * 0.5f; //Devuelve la raiz de un número que debe ser al menos 0.
+            q.x = Mathf.Sqrt(Mathf.Max(0, 1 + m[0, 0] - m[1, 1] - m[2, 2])) * 0.5f;
+            q.y = Mathf.Sqrt(Mathf.Max(0, 1 - m[0, 0] + m[1, 1] - m[2, 2])) * 0.5f;
+            q.z = Mathf.Sqrt(Mathf.Max(0, 1 - m[0, 0] - m[1, 1] + m[2, 2])) * 0.5f;
 
-            q.X *= Mathf.Sign(q.X * (m[2, 1] - m[1, 2]));
-            q.Y *= Mathf.Sign(q.Y * (m[0, 2] - m[2, 0])); //Tiene en cuenta los senos de cada eje para saber que signo deben tener
-            q.Z *= Mathf.Sign(q.Z * (m[1, 0] - m[0, 1]));
+            q.x *= Mathf.Sign(q.x * (m[2, 1] - m[1, 2]));
+            q.y *= Mathf.Sign(q.y * (m[0, 2] - m[2, 0])); //Tiene en cuenta los senos de cada eje para saber que signo deben tener
+            q.z *= Mathf.Sign(q.z * (m[1, 0] - m[0, 1]));
 
             return q;
         }
@@ -276,6 +276,8 @@ public class MyMatrix4x4 : IEquatable<MyMatrix4x4>, IFormattable
 
     public MyMatrix4x4 inverse
     {
+        // The inverse of a matrix is such that if multiplied by the original it would result in the identity matrix.   
+        // obtained using https://euclideanspace.com/maths/algebra/matrix/functions/inverse/index.htm
         get
         {
             float newM00 = M12 * M23 * M31 - M13 * M22 * M31 + M13 * M21 * M32 - M11 * M23 * M32 - M12 * M21 * M33 +
@@ -352,18 +354,18 @@ public class MyMatrix4x4 : IEquatable<MyMatrix4x4>, IFormattable
 
     public static MyMatrix4x4 Rotate(MyQuaternion q)
     {
-        float x = q.X * 2.0F;
-        float y = q.Y * 2.0F;
-        float z = q.Z * 2.0F;
-        float xx = q.X * x;
-        float yy = q.Y * y;
-        float zz = q.Z * z;
-        float xy = q.X * y;
-        float xz = q.X * z;
-        float yz = q.Y * z;
-        float wx = q.W * x;
-        float wy = q.W * y;
-        float wz = q.W * z;
+        float x = q.x * 2.0F;
+        float y = q.y * 2.0F;
+        float z = q.z * 2.0F;
+        float xx = q.x * x;
+        float yy = q.y * y;
+        float zz = q.z * z;
+        float xy = q.x * y;
+        float xz = q.x * z;
+        float yz = q.y * z;
+        float wx = q.w * x;
+        float wy = q.w * y;
+        float wz = q.w * z;
 
         MyMatrix4x4 resultMatrix = new MyMatrix4x4();
         resultMatrix.M00 = 1.0f - (yy + zz);

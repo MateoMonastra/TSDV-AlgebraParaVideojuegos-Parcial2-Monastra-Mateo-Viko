@@ -333,9 +333,12 @@ public class MyQuaternion : IEquatable<MyQuaternion>, IFormattable
 
     public static float Angle(MyQuaternion a, MyQuaternion b)
     {
+        // It is an analogue implementation to vec 3 angle.
+
         float dotValue = Dot(a.Normalized, b.Normalized);
         float dotAbsValue = Mathf.Abs(dotValue);
-        
+
+        // It's multiplied by 2 to re-obtain the incidence we divided in the quaternion formula.
         return IsEqualUsingDot(dotValue) ? 0.0f : Mathf.Acos(dotAbsValue) * 2.0f * Mathf.Rad2Deg; 
     }
 
@@ -437,6 +440,7 @@ public class MyQuaternion : IEquatable<MyQuaternion>, IFormattable
     public static Vector3 operator *(MyQuaternion rotation, Vector3 point)
     {
         MyQuaternion pureVectorQuaternion = new MyQuaternion(point.x, point.y, point.z, 0);
+        //con el conjugado retraer el movimiento indeseado
         MyQuaternion appliedPureQuaternion = rotation * pureVectorQuaternion * Conjugated(rotation);
 
         return new Vector3(appliedPureQuaternion.x, appliedPureQuaternion.y, appliedPureQuaternion.z);
