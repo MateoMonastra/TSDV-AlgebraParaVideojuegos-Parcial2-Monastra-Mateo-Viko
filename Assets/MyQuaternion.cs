@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using Vector3 = UnityEngine.Vector3;
 
 public class MyQuaternion : IEquatable<MyQuaternion>, IFormattable
 {
@@ -228,7 +229,7 @@ public class MyQuaternion : IEquatable<MyQuaternion>, IFormattable
             result.z = (timeLeft * a.z) + (t * b.z);
             result.w = (timeLeft * a.w) + (t * b.w);
         }
-        else
+        else // Para la otra direccion
         {
             result.x = (timeLeft * a.x) - (t * b.x);
             result.y = (timeLeft * a.y) - (t * b.y);
@@ -271,51 +272,15 @@ public class MyQuaternion : IEquatable<MyQuaternion>, IFormattable
         float m21 = forwardToUse.y;
         float m22 = forwardToUse.z;
 
-        //Formamos un quaternion en base a la fórmula de una matriz creada a partir de un cuaternion
+        //realizamos 
+        Vector4 column0 = new Vector4(m00,m10,m20,0);
+        Vector4 column1= new Vector4(m01,m11,m21,0);
+        Vector4 column2= new Vector4(m02,m12,m22,0);
+        Vector4 column3= Vector4.zero;
 
-        MyQuaternion result;
-        float factor;
+        MyMatrix4x4 result = new MyMatrix4x4(column0, column1, column2, column3);
 
-        //Se determina qué componente del cuaternión 4x(x, y, z o w) es más significativo basándose en los elementos de la matriz para evitar que en determinadas
-        //situaciones puede volverse todo 0.
-
-        if (m22 < 0) // sqr(X) + sqr(Y) > 1/2 que es lo mismo que |(X, Y)| > |(Z, W)| si estan normalizadas
-        {
-            //Comprueba si el componente x es mayor que el componente y se asegura de que el componente x no sea cero
-            if (m00 > m11) //X > Y ?
-            {
-                //Se calcula el factor correspondiente para x 
-                factor = 1 + m00 - m11 - m22; // sqr(X)
-
-                //Se construye el cuaternión con las ecuaciones correctas.
-                result = new MyQuaternion(factor, m10 + m01, m20 + m02, m12 - m21);
-            }
-            else
-            {
-                factor = 1 - m00 + m11 - m22;
-
-                result = new MyQuaternion(m01 + m10, factor, m12 + m21, m20 - m02);
-            }
-        }
-        else
-        {
-            if (m00 < -m11)
-            {
-                factor = 1 - m00 - m11 + m22;
-                result = new MyQuaternion(m20 + m02, m12 + m21, factor, m01 - m10);
-            }
-            else
-            {
-                factor = 1 + m00 + m11 + m22; 
-                result = new MyQuaternion(m12 - m21, m20 - m02, m01 - m10, factor);
-            }
-        }
-
-        //Después de calcular el cuaternión con el componente dominante, se normaliza
-        //Asegura que el cuaternión resultante tenga una magnitud de 1, haciendo que represente una rotación válida.
-        result *= 0.5f / Mathf.Sqrt(factor);
-
-        return result;
+        return result.Rotation;
     }
     public static MyQuaternion LookRotation(Vector3 forward)
     {

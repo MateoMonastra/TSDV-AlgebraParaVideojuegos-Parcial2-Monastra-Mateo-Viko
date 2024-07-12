@@ -185,6 +185,7 @@ public class MyMatrix4x4 : IEquatable<MyMatrix4x4>, IFormattable
         }
     }
 
+    //devuelve la matriz en posicion 0, rotacion 0 y escala 1
     public static MyMatrix4x4 Identity
     {
         get
@@ -202,25 +203,47 @@ public class MyMatrix4x4 : IEquatable<MyMatrix4x4>, IFormattable
     {
         get
         {
-            MyMatrix4x4 m = this;
-            MyQuaternion q = MyQuaternion.Identity;
+            MyQuaternion result;
+            float factor;
 
-            //Toma la diagonal (m00, m11, m22) que es la escala y en base a eso aplica en cada uno de los ejes su respectiva escala
-            //Toma en cuenta la escala para poder ajustar bien los valores ya que la escala y rotacion comparten valores
+            if (M22 < 0)
+            {
+                if (M00 > M11)
+                {
+                    factor = 1 + M00 - M11 - M22;
 
-            q.w = Mathf.Sqrt(Mathf.Max(0, 1 + m[0, 0] + m[1, 1] + m[2, 2])) * 0.5f; //Devuelve la raiz de un número que debe ser al menos 0.
-            q.x = Mathf.Sqrt(Mathf.Max(0, 1 + m[0, 0] - m[1, 1] - m[2, 2])) * 0.5f;
-            q.y = Mathf.Sqrt(Mathf.Max(0, 1 - m[0, 0] + m[1, 1] - m[2, 2])) * 0.5f;
-            q.z = Mathf.Sqrt(Mathf.Max(0, 1 - m[0, 0] - m[1, 1] + m[2, 2])) * 0.5f;
+                    result = new MyQuaternion(factor, M10 + M01, M20 + M02, M12 - M21);
+                }
+                else
+                {
+                    factor = 1 - M00 + M11 - M22;
 
-            q.x *= Mathf.Sign(q.x * (m[2, 1] - m[1, 2]));
-            q.y *= Mathf.Sign(q.y * (m[0, 2] - m[2, 0])); //Tiene en cuenta los senos de cada eje para saber que signo deben tener
-            q.z *= Mathf.Sign(q.z * (m[1, 0] - m[0, 1]));
+                    result = new MyQuaternion(M01 + M10, factor, M12 + M21, M20 - M02);
+                }
+            }
+            else
+            {
+                if (M00 < -M11)
+                {
+                    factor = 1 - M00 - M11 + M22;
 
-            return q;
+                    result = new MyQuaternion(M20 + M02, M12 + M21, factor, M01 - M10);
+                }
+                else
+                {
+                    factor = 1 + M00 + M11 + M22;
+
+                    result = new MyQuaternion(M12 - M21, M20 - M02, M01 - M10, factor);
+                }
+            }
+
+            result *= 0.5f / Mathf.Sqrt(factor);
+
+            return result;
         }
     }
 
+    //devuelve la escala de la matriz
     public Vector3 LossyScale =>
         new(
             new Vector3(M00, M10, M20).magnitude,
@@ -266,6 +289,7 @@ public class MyMatrix4x4 : IEquatable<MyMatrix4x4>, IFormattable
         M01 * M10 * M22 * M33 + M00 * M11 * M22 * M33;
 
 
+    //devuelve la matriz con las filas y columnas intercambiadas de posicion
     public MyMatrix4x4 transpose =>
         new(
             new Vector4(M00, M10, M20, M30),
@@ -274,10 +298,11 @@ public class MyMatrix4x4 : IEquatable<MyMatrix4x4>, IFormattable
             new Vector4(M03, M13, M23, M33)
         );
 
+    //Devuelve la inversa de la matriz ingresada
     public MyMatrix4x4 inverse
     {
-        // The inverse of a matrix is such that if multiplied by the original it would result in the identity matrix.   
-        // obtained using https://euclideanspace.com/maths/algebra/matrix/functions/inverse/index.htm
+        //Cada elemento de la nueva matriz se calcula utilizando las fórmulas correspondientes de los cofactores de la matriz original
+        
         get
         {
             float newM00 = M12 * M23 * M31 - M13 * M22 * M31 + M13 * M21 * M32 - M11 * M23 * M32 - M12 * M21 * M33 +
